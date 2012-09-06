@@ -14,7 +14,7 @@
              (setq n (1+ n))
              (get-buffer bufname)))
     (switch-to-buffer (get-buffer-create bufname))
-    (if (= n 1) (lisp-interaction-mode)) ; 1, because n was incremented
+    (emacs-lisp-mode)
     ))
 
 (defun toggle-window-split ()
@@ -165,9 +165,17 @@ Including indent-buffer, which should not be called automatically on save."
   (cleanup-buffer-safe)
   (indent-buffer))
 
+(defun file-name-with-one-directory (file-name)
+  (concat (cadr (reverse (split-string file-name "/"))) "/"
+          (file-name-nondirectory file-name)))
+
+(defun recentf--file-cons (file-name)
+  (cons (file-name-with-one-directory file-name) file-name))
+
 (defun recentf-ido-find-file ()
   "Find a recent file using ido."
   (interactive)
-  (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
-    (when file
-      (find-file file))))
+  (let* ((recent-files (mapcar 'recentf--file-cons recentf-list))
+         (files (mapcar 'car recent-files))
+         (file (completing-read "Choose recent file: " files)))
+    (find-file (cdr (assoc file recent-files)))))

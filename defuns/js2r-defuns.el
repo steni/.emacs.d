@@ -1,23 +1,11 @@
 (require 'cl)
+(require 's)
 
 (defun _any (pred seq)
   (< 0 (count-if pred seq)))
 
 (defun _partial (f &rest args)
   (apply 'apply-partially (cons f args)))
-
-(defun s-ends-with-p (s suffix)
-  "Does S end in SUFFIX?"
-  (let ((pos (- (length suffix))))
-    (and (>= (length s) (length suffix))
-         (string= suffix (substring s pos)))))
-
-(defun s-chop-suffix (s suffix)
-  "Remove string 'suffix' if it is at end of string 's'"
-  (let ((pos (- (length suffix))))
-    (if (s-ends-with-p s suffix)
-        (substring s 0 pos)
-      s)))
 
 (defvar js2r-path-to-tests "/test/"
   "Path to tests from a root shared with sources")
@@ -150,3 +138,30 @@
           (insert "refute"))
       (kill-word 1)
       (insert "assert"))))
+
+;; Mark a js2-node in right window
+
+(defun remove-js2-mark-overlay ()
+  (interactive)
+  (mapc #'(lambda (o)
+            (when (eq (overlay-get o 'type) 'mark-js2-in-right-window)
+              (delete-overlay o)))
+        (overlays-in (point-min) (point-max))))
+
+(defmacro mark-js2-in-right-window (func)
+  `(progn
+     (kill-comment nil)
+     (windmove-right)
+     (remove-js2-mark-overlay)
+     (let* ((node ,func)
+            (beg (js2-node-abs-pos node))
+            (end (js2-node-abs-end node))
+            (o (make-overlay beg end nil nil t)))
+       (overlay-put o 'face 'region)
+       (overlay-put o 'type 'mark-js2-in-right-window)
+       (windmove-left)
+       (save-excursion
+         (insert (format " ;; %s" (js2-node-short-name node)))))))
+
+;;(mark-js2-in-right-window
+;;  (js2-node-at-point)) ;; js2-name-node

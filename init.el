@@ -1,6 +1,7 @@
 ;; Turn off mouse interface early in startup to avoid momentary display
-(dolist (mode '(menu-bar-mode tool-bar-mode scroll-bar-mode))
-  (when (fboundp mode) (funcall mode -1)))
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
 ;; Set path to .emacs.d
 (setq dotfiles-dir (file-name-directory
@@ -41,31 +42,49 @@
 ;; Are we on a mac?
 (setq is-mac (equal system-type 'darwin))
 
+;; Setup elnode before packages to stop it from starting a server
+(require 'setup-elnode)
+
+;; Setup packages
+(require 'setup-package)
+
+;; Install extensions if they're missing
+(packages-install
+ (cons 'magit melpa)
+ (cons 'elisp-slime-nav melpa)
+ (cons 'elnode marmalade)
+ (cons 'slime-js marmalade)
+ (cons 'clojure-mode melpa)
+ (cons 'nrepl melpa))
+
 ;; Setup extensions
-(require 'setup-ido)
+(eval-after-load 'ido '(require 'setup-ido))
+(eval-after-load 'org '(require 'setup-org))
+(eval-after-load 'dired '(require 'setup-dired))
+(eval-after-load 'magit '(require 'setup-magit))
+(eval-after-load 'grep '(require 'setup-rgrep))
+(eval-after-load 'hippie-exp '(require 'setup-hippie))
+(eval-after-load 'shell '(require 'setup-shell))
 (require 'setup-yasnippet)
-(require 'setup-dired)
-(require 'setup-magit)
-(require 'setup-rgrep)
-(require 'setup-hippie)
 (require 'setup-ace-jump-mode)
 (require 'setup-perspective)
-(require 'setup-shell)
 (require 'setup-wrap-region)
 (require 'setup-ffip)
+(require 'setup-zencoding)
+
+;; Load slime-js when asked for
+(autoload 'slime-js-jack-in-browser "setup-slime-js" nil t)
+(autoload 'slime-js-jack-in-node "setup-slime-js" nil t)
 
 ;; Map files to modes
 (require 'mode-mappings)
-
-;; Annoying arrows mode
-(require 'annoying-arrows-mode)
-(global-annoying-arrows-mode)
 
 ;; Functions (load all files in defuns-dir)
 (setq defuns-dir (expand-file-name "defuns" dotfiles-dir))
 (dolist (file (directory-files defuns-dir t "\\w+"))
   (when (file-regular-p file)
     (load file)))
+
 (require 'expand-region)
 (require 'mark-more-like-this)
 (require 'inline-string-rectangle)
@@ -74,6 +93,8 @@
 (require 'jump-char)
 (require 'eproject)
 (require 'wgrep)
+(require 'smart-forward)
+(require 'change-inner)
 
 ;; Fill column indicator
 (require 'fill-column-indicator)
@@ -83,23 +104,22 @@
 (require 'browse-kill-ring)
 (setq browse-kill-ring-quit-action 'save-and-restore)
 
-;; Add JSP expansions to html-mode
-(eval-after-load "sgml-mode" '(require 'jsp-expansions))
-
 ;; Smart M-x is smart
 (require 'smex)
 (smex-initialize)
-
-;; Vimgolf
-(load (expand-file-name "vimgolf/emacs/vimgolf.el" site-lisp-dir))
 
 ;; Setup key bindings
 (require 'key-bindings)
 
 ;; Misc
 (require 'appearance)
-(require 'misc)
+(require 'my-misc)
 (when is-mac (require 'mac))
+
+;; Elisp go-to-definition with M-. and back again with M-,
+(autoload 'elisp-slime-nav-mode "elisp-slime-nav")
+(add-hook 'emacs-lisp-mode-hook (lambda () (elisp-slime-nav-mode t)))
+(eval-after-load 'elisp-slime-nav '(diminish 'elisp-slime-nav-mode))
 
 ;; Emacs server
 (require 'server)
@@ -117,4 +137,4 @@
 
 ;; Conclude init by setting up specifics for the current user
 (when (file-exists-p user-settings-dir)
-      (mapc 'load (directory-files user-settings-dir nil "^[^#].*el$")))
+  (mapc 'load (directory-files user-settings-dir nil "^[^#].*el$")))
