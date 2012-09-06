@@ -47,6 +47,19 @@
 
 (define-key persp-mode-map (kbd "C-x p l e") 'custom-persp/pleasurebook)
 
+;; oiiku
+
+(defun custom-persp/oiiku ()
+  (interactive)
+  (custom-persp "oiiku"
+                (find-file "~/Code/oiiku/")))
+
+(project-specifics "Code/oiiku"
+                   (setq clj-project-name "oiiku"))
+
+(define-key persp-mode-map (kbd "C-x p o k") 'custom-persp/oiiku)
+
+
 ;; CLJEmacs
 
 (defun custom-persp/cljemacs ()
