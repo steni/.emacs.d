@@ -55,7 +55,9 @@
  (cons 'elnode marmalade)
  (cons 'slime-js marmalade)
  (cons 'clojure-mode melpa)
+ (cons 'clojure-test-mode melpa)
  (cons 'nrepl melpa))
+ (cons 'paredit melpa))
 
 ;; Setup extensions
 (eval-after-load 'ido '(require 'setup-ido))
