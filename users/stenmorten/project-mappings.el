@@ -72,19 +72,6 @@
 
 (define-key persp-mode-map (kbd "C-x p c l j") 'custom-persp/cljemacs)
 
-;; minesweeper
-
-(defun custom-persp/cljemacs ()
-  (interactive)
-  (custom-persp "minesweeper"
-                (find-file "~/Code/FINN-techdag/")))
-
-(project-specifics "Code/FINN-techdag"
-                   (setq clj-project-name "finntechdag"))
-
-(define-key persp-mode-map (kbd "C-x p m i n") 'custom-persp/cljemacs)
-
-
 ;; Org
 
 (defun custom-persp/org ()
